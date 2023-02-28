@@ -75,8 +75,9 @@ public class NoteAPI {
         return "";
     }
     public void PutNote(String title, NoteDao dao) {
-        String content = dao.get(title).getValue().content; // this is live data... getValue?
-        String jsonStr = new Gson().toJson(Map.of(title, content));
+        var note = dao.get(title).getValue(); // this is live data... getValue?
+        String jsonStr = new Gson().toJson(Map.of("content", note.content,
+                                            "updated_at", note.updatedAt));
         RequestBody rqb = RequestBody.create(jsonStr, JSON);
 
         // URLs cannot contain spaces, so we replace them with %20.
