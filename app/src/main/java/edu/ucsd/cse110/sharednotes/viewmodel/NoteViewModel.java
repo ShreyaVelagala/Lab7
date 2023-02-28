@@ -30,7 +30,7 @@ public class NoteViewModel extends AndroidViewModel {
         if (note == null) {
             note = repo.getLocal(title);
         }
-        repo.getSynced(title);
+        note = repo.getSynced(title);
         return note;
     }
 
