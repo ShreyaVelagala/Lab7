@@ -39,6 +39,7 @@ public class NoteAPI {
      *
      * The /echo/{msg} endpoint always just returns {"message": msg}.
      */
+    /*
     public void echo(String msg) {
         // URLs cannot contain spaces, so we replace them with %20.
         msg = msg.replace(" ", "%20");
@@ -56,6 +57,8 @@ public class NoteAPI {
             e.printStackTrace();
         }
     }
+    */
+
     public String GetNote(String title) {
         // URLs cannot contain spaces, so we replace them with %20.
         title = title.replace(" ", "%20");
@@ -74,26 +77,28 @@ public class NoteAPI {
         }
         return "";
     }
-    public void PutNote(String title, NoteDao dao) {
-        var note = dao.get(title).getValue(); // this is live data... getValue?
+    public void PutNote(Note note) {
         String jsonStr = new Gson().toJson(Map.of("content", note.content,
                                             "updated_at", note.updatedAt));
         RequestBody rqb = RequestBody.create(jsonStr, JSON);
+        Thread networkThread = new Thread(()-> {
+            // URLs cannot contain spaces, so we replace them with %20.
+            var title = note.title;
+            title = title.replace(" ", "%20");
+            var request = new Request.Builder()
+                    .url("https://sharednotes.goto.ucsd.edu/notes/" + title)
+                    .method("PUT", rqb)
+                    .build();
 
-        // URLs cannot contain spaces, so we replace them with %20.
-        title = title.replace(" ", "%20");
-        var request = new Request.Builder()
-                .url("https://sharednotes.goto.ucsd.edu/notes/" + title)
-                .method("PUT", rqb)
-                .build();
+            try (var response = client.newCall(request).execute()) {
+                assert response.body() != null;
+                var body = response.body().string();
 
-        try (var response = client.newCall(request).execute()) {
-            assert response.body() != null;
-            var body = response.body().string();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        networkThread.start();
 
     }
 }

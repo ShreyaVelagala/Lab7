@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class NoteRepository {
     private final NoteDao dao;
+    NoteAPI api = new NoteAPI();
 
     public NoteRepository(NoteDao dao) {
         this.dao = dao;
@@ -87,23 +89,37 @@ public class NoteRepository {
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
 
-        LiveData<Note> note = dao.get(title);
+        // ScheduledFuture result of scheduling a task with a Scheduled Executor Service
+        ScheduledFuture<?> clockFuture;
+        // LiveData variable which contains the latest note content
+        MutableLiveData<Note> updatedNote = new MutableLiveData<Note>();
+
+        //MutableLiveData<Note> note = (MutableLiveData<Note>) getLocal(title); // returns the note
+
         var executor = Executors.newSingleThreadScheduledExecutor();
+        clockFuture = executor.scheduleAtFixedRate(() -> {
+            // fetching new note content from server
+            String content = api.GetNote(title);
+            updatedNote.postValue(new Note(title, content));
+        }, 0, 3000, TimeUnit.MILLISECONDS);
+        return updatedNote;
+        /*
         NoteAPI api = new NoteAPI();
-        Note n = note.getValue();
-        ScheduledFuture<?> clockFuture = executor.scheduleAtFixedRate(() -> {
+        Note n = note.getValue(); // getting the note object from LiveData<Note>
+            clockFuture = executor.scheduleAtFixedRate(() -> {
             String content = api.GetNote(title);
             n.content = content;
             dao.upsert(n);
         }, 0, 3000, TimeUnit.MILLISECONDS);
+
         throw new UnsupportedOperationException("Not implemented yet");
+         */
     }
 
     public void upsertRemote(Note note) {
-        String title = note.title;
-        NoteAPI api = new NoteAPI();
-        api.PutNote(title, dao);
-        // TODO: Implement upsertRemote!
-        throw new UnsupportedOperationException("Not implemented yet");
+        //String title = note.title;
+        api.PutNote(note);
+        // TODO: Implement upsertRemote
+        //throw new UnsupportedOperationException("Not implemented yet");
     }
 }

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
+import android.Manifest;
 import edu.ucsd.cse110.sharednotes.R;
 import edu.ucsd.cse110.sharednotes.model.Note;
 import edu.ucsd.cse110.sharednotes.view.NotesAdapter;
@@ -85,6 +87,8 @@ public class ListActivity extends AppCompatActivity {
 
         // Set the content view to be the main layout.
         setContentView(R.layout.activity_list);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 200);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_NETWORK_STATE}, 200);
 
         // Note: we are avoiding storing viewModel and adapter in fields we access later. This is
         // because fields are mutable, and mutable state is hard to reason about. They could be
