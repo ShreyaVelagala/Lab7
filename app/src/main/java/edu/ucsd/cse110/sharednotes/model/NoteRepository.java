@@ -2,9 +2,13 @@ package edu.ucsd.cse110.sharednotes.model;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class NoteRepository {
     private final NoteDao dao;
@@ -82,11 +86,24 @@ public class NoteRepository {
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
+
+        LiveData<Note> note = dao.get(title);
+        var executor = Executors.newSingleThreadScheduledExecutor();
+        NoteAPI api = new NoteAPI();
+        Note n = note.getValue();
+        ScheduledFuture<?> clockFuture = executor.scheduleAtFixedRate(() -> {
+            String content = api.GetNote(title);
+            n.content = content;
+            dao.upsert(n);
+        }, 0, 3000, TimeUnit.MILLISECONDS);
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     public void upsertRemote(Note note) {
-        // TODO: Implement upsersRemote!
+        String title = note.title;
+        NoteAPI api = new NoteAPI();
+        api.PutNote(title, dao);
+        // TODO: Implement upsertRemote!
         throw new UnsupportedOperationException("Not implemented yet");
     }
 }

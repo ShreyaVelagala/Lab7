@@ -3,9 +3,14 @@ package edu.ucsd.cse110.sharednotes.model;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+import java.util.Map;
+
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 
 public class NoteAPI {
     // TODO: Implement the API using OkHttp!
@@ -15,6 +20,8 @@ public class NoteAPI {
     private volatile static NoteAPI instance = null;
 
     private OkHttpClient client;
+    public static final MediaType JSON
+            = MediaType.get("application/json; charset=utf-8");
 
     public NoteAPI() {
         this.client = new OkHttpClient();
@@ -48,5 +55,44 @@ public class NoteAPI {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public String GetNote(String title) {
+        // URLs cannot contain spaces, so we replace them with %20.
+        title = title.replace(" ", "%20");
+
+        var request = new Request.Builder()
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + title)
+                .method("GET", null) // body is null because not putting anything into the server
+                .build();
+
+        try (var response = client.newCall(request).execute()) {
+            assert response.body() != null;
+            var body = response.body().string();
+            return body;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+    public void PutNote(String title, NoteDao dao) {
+        String content = dao.get(title).getValue().content; // this is live data... getValue?
+        String jsonStr = new Gson().toJson(Map.of(title, content));
+        RequestBody rqb = RequestBody.create(jsonStr, JSON);
+
+        // URLs cannot contain spaces, so we replace them with %20.
+        title = title.replace(" ", "%20");
+        var request = new Request.Builder()
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + title)
+                .method("PUT", rqb)
+                .build();
+
+        try (var response = client.newCall(request).execute()) {
+            assert response.body() != null;
+            var body = response.body().string();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
