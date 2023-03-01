@@ -118,6 +118,9 @@ public class NoteRepository {
 
     public void upsertRemote(Note note) {
         //String title = note.title;
+        if(!dao.exists(note.title)) {
+            note.updatedAt = System.currentTimeMillis();
+        }
         api.PutNote(note);
         // TODO: Implement upsertRemote
         //throw new UnsupportedOperationException("Not implemented yet");
